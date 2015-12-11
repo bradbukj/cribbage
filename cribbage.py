@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf-8
 
 from itertools import combinations
@@ -41,8 +41,11 @@ class Card:
         self._rank = rank
         self._suit = suit
 
-    def __cmp__(self, other):
-        return self.get_value() - other.get_value()
+    def __lt__(self, other):
+        return self.get_value() < other.get_value()
+
+    def __eq__(self, other):
+        return self.get_value() == other.get_value()
 
     def __str__(self):
         return self.get_long_string()
@@ -117,14 +120,17 @@ def score_hand(hand, cut):
     hand_with_cut = hand + [cut]
     hand_with_cut.sort()
 
-    return score_hand_total(hand_with_cut), score_hand_pairs(hand_with_cut), score_hand_runs(
-        hand_with_cut), score_hand_flush(hand, cut), score_hand_jack(hand, cut)
+    return {'totals': score_hand_total(hand_with_cut),
+            'pairs': score_hand_pairs(hand_with_cut),
+            'runs': score_hand_runs(hand_with_cut),
+            'flush': score_hand_flush(hand, cut),
+            'jack': score_hand_jack(hand, cut)}
 
 
 def score_hand_total(hand):
     score = 0
 
-    for r in xrange(2, 6):
+    for r in range(2, 6):
         score += len([cards for cards in combinations(hand, r) if sum([c.get_rank(True) for c in cards]) == 15])
 
     return score * 2
@@ -132,7 +138,7 @@ def score_hand_total(hand):
 
 def score_hand_pairs(hand):
     score = 0
-    ranks = [0 for _ in xrange(13)]
+    ranks = [0 for _ in range(13)]
 
     for c in hand:
         ranks[c.get_rank() - 1] += 1
@@ -146,14 +152,14 @@ def score_hand_pairs(hand):
 
 def score_hand_runs(hand):
     score, streak, multiplier = 0, 1, 1
-    ranks = [0 for _ in xrange(13)]
+    ranks = [0 for _ in range(13)]
 
     for c in hand:
         ranks[c.get_rank() - 1] += 1
 
     multiplier *= 1 if ranks[0] == 0 else ranks[0]
 
-    for i in xrange(1, 13):
+    for i in range(1, 13):
         if ranks[i] > 0 and ranks[i - 1] > 0:
             streak += 1
         else:
@@ -172,7 +178,7 @@ def score_hand_runs(hand):
 
 
 def score_hand_flush(hand, cut):
-    for i in xrange(1, 4):
+    for i in range(1, 4):
         if hand[i].get_suit() != hand[i - 1].get_suit():
             return 0
 
@@ -191,12 +197,19 @@ def score_hand_jack(hand, cut):
 
 
 while True:
-    my_hand = raw_input('Enter hand cards: ').upper()
+    my_hand = input('Enter hand cards: ').strip().upper()
     my_hand = [Card.from_short(card) for card in my_hand.split(' ')]
 
-    my_cut = Card.from_short(raw_input('Enter cut card: ').upper())
+    my_cut = Card.from_short(input('Enter cut card: ').strip().upper())
 
     my_score = score_hand(my_hand, my_cut)
 
-    print 'Score for %s (%s) is %d.' % (
-        ', '.join([card.get_short_string(True) for card in my_hand]), my_cut.get_short_string(True), sum(my_score))
+    print('Score for %s (%s) is %d.' % (
+        ', '.join([card.get_short_string(True) for card in my_hand]), my_cut.get_short_string(True),
+        sum(my_score.values())))
+
+    print('Score breakdown:')
+    for key, value in my_score.items():
+        print('{0:>15}: {1}'.format(key, value))
+
+    print()
