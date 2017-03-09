@@ -11,6 +11,7 @@ DIAMONDS = 1
 HEARTS = 2
 SPADES = 3
 
+# Array of ranks, 1 though 13 
 RANKS = ['Ace',
          'Two',
          'Three',
@@ -33,6 +34,7 @@ SUITS = [('Clubs', '♣', '\033[30m'),
 
 class Card:
     def __init__(self, rank, suit):
+        # this ensures all inputs are within the acceptable range of ranks and suits
         if rank < 1 or rank > 13:
             raise ValueError('invalid rank')
         elif suit < 0 or suit > 3:
@@ -41,27 +43,41 @@ class Card:
         self._rank = rank
         self._suit = suit
 
+    ## Method "lt": 'Less than' function.. returns True if self's value is less than
+    ## the value of other
+    ## Parameter "other": Card object
     def __lt__(self, other):
         return self.get_value() < other.get_value()
-
+    
+    ## Method "eq": 'Equal to' function.. returns true if the Card object self's value
+    ## is equal to the value of other
+    ## Parameter "other": Card object
     def __eq__(self, other):
         return self.get_value() == other.get_value()
-
+    
+    ## Method "str": 'String' function.. returns the long version* of a string identifying
+    ## the current Card object
+    ## *See get_long_string() method
     def __str__(self):
         return self.get_long_string()
-
+    
+    ## Method "repr": Function returns the rank and suit stats of the Card object
     def __repr__(self):
         return '<Card rank=%d suit=%d>' % (self._rank, self._suit)
-
+    
+    ## Method "get_long_string": Function gets the position of the Card object within
+    ## its suit 
     def get_long_string(self):
         return RANKS[self._rank - 1] + ' of ' + SUITS[self._suit][0]
+    
+    ## Method "get_rank": Function gets the rank differently for dealers and other players
+    def get_rank(self, cribbage=False): # if any player except the dealer is counting, cribbage is set to False
+        if cribbage: # if dealer
+            return self._rank if self._rank <= 10 else 10 # ensures rank does not exceed 10
+        else: # if not dealer
+            return self._rank # no additional rank max
 
-    def get_rank(self, cribbage=False):
-        if cribbage:
-            return self._rank if self._rank <= 10 else 10
-        else:
-            return self._rank
-
+    ## Method "get_short_string": Function gets the 
     def get_short_string(self, colour=False):
         string = (str(self._rank) if 2 <= self._rank <= 10 else RANKS[self._rank - 1][0]) + SUITS[self._suit][1]
 
@@ -69,10 +85,12 @@ class Card:
             string = SUITS[self._suit][2] + string + '\033[0m'
 
         return string
-
+    
+    ## Method "get_suit": Function returns the number associated with the suit of the Card
     def get_suit(self):
         return self._suit
 
+    ## Method "get_value": Function returns the value of the Card object
     def get_value(self):
         return (self._rank - 1) * 4 + self._suit
 
@@ -172,7 +190,7 @@ def score_hand_runs(hand):
         multiplier = 1 if ranks[i] == 0 else ranks[i] if streak == 1 else multiplier * ranks[i]
 
     if streak >= 3:
-        score += streak * multiplier
+        score += streak * multiplier # apply multipler to score
 
     return score
 
